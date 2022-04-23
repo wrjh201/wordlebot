@@ -1,0 +1,4 @@
+* Wordle Bot
+This is a simple wordle solver written in Common Lisp. Theory from the [[www.youtube.com/watch?v=v68zYyaEmEA][3Blue1Brown video on information theory and Wordle]] is used.
+
+=words.txt= was extracted from [[https://github.com/MikhaD/wordle][MikhaD/wordle.]]
