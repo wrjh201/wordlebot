@@ -57,10 +57,14 @@
    ;; green & grey pass
    (loop for gc across guess for wc across word for res in result
 	 always (case res
-		  (green (char= gc wc))
-		  (grey (not (char= gc wc)))
-		  (otherwise t))
+		  (green (char= gc wc)) ;; check each green letter matches
+		  (grey (not (char= gc wc))) ;; check each grey letter doesnt
+		  (yellow (not (char= gc wc))))
 	 )
+   (loop for gc across guess
+	 for res in result
+	 never (and (eq res 'grey)
+		    (find gc word)))
    ;; yellow pass
    (loop for guess-char across guess
 	 always
@@ -96,4 +100,6 @@
   (loop for result in (nloops '(green yellow grey) 5)
 	for px = (simple-px guess result words)
 	unless (zerop px)
-	  sum (* px (- (log px 2)))))
+	  sum (* px (- (log px 2)))
+	;; sum px
+	))
