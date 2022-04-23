@@ -20,16 +20,6 @@
                 nconc (loop for b in (nloops lst (1- n))
                             collect (cons a b))))))
 
-;; (defun get-result (guess word)
-;;   "Get the wordle result of GUESS from WORD."
-;;   ;; TODO: This probably doesn't handle repeated words properly.
-;;   (loop for letter across guess
-;; 	for idx from 0
-;; 	where occured = ()
-;; 	collect (cond ((char= letter (char word idx)) 'green)
-;; 		      ((some (lambda (x) (char= letter x)) word) 'yellow)
-;; 		      (t 'grey))))
-
 (defun result-green-pass (guess word)
   "Only set matching letters green. Leave the rest grey."
   (loop for lg across guess
