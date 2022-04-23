@@ -41,11 +41,45 @@
 	)
   )
 
-
 ;; result-matches-p
 ;; TODO: write a function that takes a word, a guess and a result and returns T
 ;;       if the word is a possible candidate for the answer given the guess and
 ;;       its result.
+
+(defun remove-greens (guess word result)
+  (loop for guess-char across guess
+	for word-char across word
+	for res in result
+	unless (eq res 'green)
+	  collect res into rl
+	  and collect word-char into wl
+	  and collect guess-char into gl
+	finally (return (values gl wl rl)))
+  )
+
+(defun result-matches-p (guess word result)
+  "T if WORD is a possible candidate for GUESS and RESULT."
+  ;; TODO: clean up.
+  (loop for guess-char across guess
+	for word-char across word
+	for res in result
+	always (case res
+		 (green (char= guess-char word-char))
+		 (yellow
+		  (multiple-value-bind (guess word result) (remove-greens guess word result)
+		    (loop for gl in guess
+			  for wl in word
+			  for res in result
+			  count (and (char= gl wl) (eq res 'yellow)) into c1
+			  count (char= gl wl) into c2
+			  finally (return (< c2 c1)))))
+		 (grey
+		  (loop for wl across word
+			never (eq guess-char wl)))
+		 (otherwise t)
+
+		 ))
+  )
 
 (defun wordle-emoji (result)
   (cond ((symbolp result) (ecase result
