@@ -3,7 +3,7 @@
 (in-package :wordle)
 
 (defun load-words (path)
-  (uiop:read-file-lines path)
+  (coerce (uiop:read-file-lines path) 'vector)
   )
 
 (defun validate-words-file (list)
@@ -11,7 +11,7 @@
   (every (lambda (line) (= (length line) 5)) list)
   )
 
-(defparameter *words* (sort (load-words #P"pos_words.txt") #'string<) 
+(defparameter *words* (load-words #P"words-small.txt")
   "List of 5 letter words that are valid guesses in Wordle.")
 
 (defun nloops (lst n)
@@ -54,26 +54,24 @@
 (defun result-matches-p (guess word result)
   "Returns T when WORD is a possible candidate for GUESS with RESULT. NIL otherwise."
   (and
-   ;; green & grey pass
-   (loop for gc across guess for wc across word for res in result
-	 always (case res
-		  (green (char= gc wc)) ;; check each green letter matches
-		  (grey (not (char= gc wc))) ;; check each grey letter doesnt
-		  (yellow (not (char= gc wc))))
-	 )
-   (loop for gc across guess
-	 for res in result
-	 never (and (eq res 'grey)
-		    (find gc word)))
-   ;; yellow pass
    (loop for guess-char across guess
-	 always
-	 (>= (count guess-char word)
-	     (loop for gc across guess
-		   for res in result
-		   count (and (eq res 'yellow)
-			      (char= gc guess-char))))
-	 )))
+	 for word-char across word
+	 for res in result
+	 always (and
+		 (not (and (eq res 'grey)
+			   (find guess-char word)))
+
+		 (case res
+		   (green (char= guess-char word-char)) ;; check each green letter matches
+		   (grey (not (char= guess-char word-char))) ;; check each grey letter doesnt
+		   (yellow (not (char= guess-char word-char))))
+		 
+		 (>= (count guess-char word)
+		     (loop for gc across guess
+			   for res in result
+			   count (and (eq res 'yellow)
+				      (char= gc guess-char))))
+		 ))))
 
 (defun wordle-emoji (result)
   "When RESULT is a symbol, return its wordle colour symbol. If RESULT is a list, do this for each element. Errors on incorrect symbol."
@@ -85,7 +83,7 @@
 
 (defun possible-words (guess result &optional (words *words*))
   "Return a list of possible words matching result with guess from words."
-  (loop for word in words
+  (loop for word across words
 	if (result-matches-p guess word result)
 	  collect word)
   )
@@ -103,3 +101,11 @@
 	  sum (* px (- (log px 2)))
 	;; sum px
 	))
+
+(defun all-expected-info (&optional (words *words*))
+  (loop for word across words
+	for idx from 1
+	with total-words = (length words)
+	if (zerop (mod idx 100))
+	  do (format t "~f%~%" (* 100 (/ idx total-words)))
+	collect (cons word (expected-information word words))))
